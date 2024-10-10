@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Genres xmlns="http://localhost:8000/library/genres">
+    <Genre id="g1">
+        <Name>Fiction</Name>
+    </Genre>
+    <Genre id="g2">
+        <Name>Non-Fiction</Name>
+    </Genre>
+    <Genre id="g3">
+        <Name>Romance</Name>
+    </Genre>
+    <Genre id="g4">
+        <Name>Biography</Name>
+    </Genre>
+    <!-- Add more genres as needed -->
+</Genres>

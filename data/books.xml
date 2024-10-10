@@ -4,18 +4,21 @@
         <Title>1984</Title>
         <Author xlink:href="authors.xml#a1"/>
         <Publisher xlink:href="publishers.xml#p1"/>
+        <Genre xlink:href="genres.xml#g1"/>
         <State>Present</State>
     </Book>
     <Book id="b2">
         <Title>To Kill a Mockingbird</Title>
         <Author xlink:href="authors.xml#a2"/>
         <Publisher xlink:href="publishers.xml#p2"/>
+        <Genre xlink:href="genres.xml#g1"/>
         <State>Present</State>
     </Book>
     <Book id="b3">
         <Title>Pride and Prejudice</Title>
         <Author xlink:href="authors.xml#a3"/>
         <Publisher xlink:href="publishers.xml#p3"/>
+        <Genre xlink:href="genres.xml#g3"/>
         <State>Present</State>
     </Book>
     <!-- Add more books as needed -->
