@@ -15,8 +15,3 @@ cd .\library_management_task\
 python -m http.server
 ```
 4. Navigate to localhost (port will be displayed in terminal)
-
-### Tasks:
-
-1. Include category "Genre" for books
-2. Add 5 more books
