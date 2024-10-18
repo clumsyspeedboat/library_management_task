@@ -84,7 +84,7 @@ window.onload = function () {
                              <td><a href="viewer.html?file=books.xml&id=${id}" target="_blank">${title}</a></td>
                              <td><a href="viewer.html?file=authors.xml&id=${authorId}" target="_blank">${authorName}</a></td>
                              <td><a href="viewer.html?file=publishers.xml&id=${publisherId}" target="_blank">${publisherName}</a></td>
-                             <td><a href="viewer.html?file=genres.xml&id=${genreId}" target="_blank">${genreName}</a></td> <!-- Genre Column -->
+                             <td><a href="viewer.html?file=genres.xml&id=${genreId}" target="_blank">${genreName}</a></td>
                              <td>${isBorrowed ? borrowingData[id].borrowerName : ''}</td>
                              <td>${isBorrowed ? borrowingData[id].borrowDate : ''}</td>
                              <td>${isBorrowed ? borrowingData[id].returnDate : ''}</td>
@@ -95,3 +95,11 @@ window.onload = function () {
         console.error('Error fetching or parsing XML files:', error);
     });
 };
+
+// Clear borrowing data from localStorage
+document.getElementById('clearDataBtn').addEventListener('click', function () {
+    if (confirm('Are you sure you want to clear all borrowing data? This action cannot be undone.')) {
+        localStorage.removeItem('borrowingData'); // Only remove borrowing data
+        location.reload(); // Reload the page after clearing the data
+    }
+});
