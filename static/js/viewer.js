@@ -1,5 +1,17 @@
 // viewer.js
 
+window.onload = function () {
+    const params = getQueryParams();
+    const file = params['file'];
+    const id = params['id'];
+
+    if (file && id) {
+        displayEntity(file, id);
+    } else {
+        document.getElementById('content').innerHTML = '<p>Invalid parameters.</p>';
+    }
+};
+
 /**
  * Function to retrieve query parameters from the URL.
  * @returns {Object} An object containing key-value pairs of query parameters.
@@ -16,13 +28,48 @@ function getQueryParams() {
 }
 
 /**
+ * Fetches a description from the Gemini API for the given entity.
+ * @param {string} entityName - The name of the entity (book, author, genre, etc.).
+ */
+async function fetchGeminiDescription(entityName) {
+    console.log('Fetching description for:', entityName); // Debug
+    try {
+        const response = await fetch(`/api/description?name=${encodeURIComponent(entityName)}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('Fetch response status:', response.status); // Debug
+
+        if (response.status === 400) {
+            throw new Error('Invalid request. Entity name is missing.');
+        } else if (response.status === 500) {
+            throw new Error('Server error while fetching description.');
+        } else if (!response.ok) {
+            throw new Error('Unexpected error occurred.');
+        }
+
+        const data = await response.json();
+        console.log('Received data:', data); // Debug
+        const description = data.description || 'No description available.';
+        // Display the description in the "description" div
+        document.getElementById('description').innerHTML = `<h2>Description</h2><p>${description}</p>`;
+    } catch (error) {
+        console.error('Error fetching description from Gemini API:', error);
+        document.getElementById('description').innerHTML = `<p>${error.message}</p>`;
+    }
+}
+
+
+/**
  * Asynchronously fetches and parses an XML file.
  * @param {string} filePath - The relative path to the XML file.
  * @returns {Promise<Document>} A promise that resolves to the parsed XML Document.
  */
 async function fetchXML(filePath) {
     try {
-        const response = await fetch(`data/${filePath}`);
+        const response = await fetch(`/static/data/${filePath}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
         }
@@ -72,11 +119,8 @@ async function displayEntity(file, id) {
         // Fetch and parse the main XML file
         const mainDoc = await fetchXML(file);
         
-        // Use XPath or querySelector with proper namespace handling if necessary
-        // For simplicity, we'll use querySelector with localName
-        // Construct a selector that ignores namespaces
+        // Select the entity by its ID
         const entity = mainDoc.querySelector(`[id='${id}']`);
-        
         if (!entity) {
             document.getElementById('content').innerHTML = '<p>Entity not found.</p>';
             return;
@@ -93,6 +137,7 @@ async function displayEntity(file, id) {
 
         // Collect linked files from child elements
         const linkedFiles = new Set();
+        let entityName = '';
 
         for (let i = 0; i < entity.children.length; i++) {
             const child = entity.children[i];
@@ -100,6 +145,8 @@ async function displayEntity(file, id) {
             if (xlinkHref) {
                 const [filePath, linkedId] = xlinkHref.split('#');
                 linkedFiles.add(filePath);
+            } else if (child.localName === 'Title' || child.localName === 'Name') {
+                entityName = child.textContent; // Get the entity name to pass to Gemini
             }
         }
 
@@ -120,12 +167,6 @@ async function displayEntity(file, id) {
                 books = { ...books, ...parseEntities(doc, 'Book') };
             }
         });
-
-        // Debugging: Log the populated entities
-        console.log('Authors:', authors);
-        console.log('Publishers:', publishers);
-        console.log('Genres:', genres);
-        console.log('Books:', books);
 
         // Build the HTML content
         let htmlContent = `<h1>${entityType} Details</h1><ul>`;
@@ -201,23 +242,13 @@ async function displayEntity(file, id) {
         // Display the content
         document.getElementById('content').innerHTML = htmlContent;
 
+        // Fetch and display the Gemini description (if entityName exists)
+        if (entityName) {
+            fetchGeminiDescription(entityName);
+        }
+
     } catch (error) {
         console.error('Error displaying entity:', error);
         document.getElementById('content').innerHTML = `<p>Error loading entity details.</p>`;
     }
 }
-
-/**
- * Main execution function that runs when the window loads.
- */
-window.onload = function () {
-    const params = getQueryParams();
-    const file = params['file'];
-    const id = params['id'];
-
-    if (file && id) {
-        displayEntity(file, id);
-    } else {
-        document.getElementById('content').innerHTML = '<p>Invalid parameters.</p>';
-    }
-};

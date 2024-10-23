@@ -1,10 +1,10 @@
 window.onload = function () {
     // Fetch all XML data concurrently
     Promise.all([
-        fetch('data/authors.xml').then(response => response.text()),
-        fetch('data/publishers.xml').then(response => response.text()),
-        fetch('data/books.xml').then(response => response.text()),
-        fetch('data/genres.xml').then(response => response.text()) // Fetch genres.xml
+        fetch('/static/data/authors.xml').then(response => response.text()),
+        fetch('/static/data/publishers.xml').then(response => response.text()),
+        fetch('/static/data/books.xml').then(response => response.text()),
+        fetch('/static/data/genres.xml').then(response => response.text()) // Fetch genres.xml
     ]).then(([authorsData, publishersData, booksData, genresData]) => {
         const parser = new DOMParser();
 
