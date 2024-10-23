@@ -10,7 +10,7 @@
         <Name>Romance</Name>
     </Genre>
     <Genre id="g4">
-        <Name>Biography</Name>
+        <Name>Satire</Name>
     </Genre>
     <!-- Add more genres as needed -->
 </Genres>

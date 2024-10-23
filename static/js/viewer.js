@@ -52,15 +52,18 @@ async function fetchGeminiDescription(entityName) {
 
         const data = await response.json();
         console.log('Received data:', data); // Debug
-        const description = data.description || 'No description available.';
+        const descriptionMarkdown = data.description || 'No description available.';
+
+        // Convert Markdown to HTML using Marked.js
+        const descriptionHTML = marked.parse(descriptionMarkdown);
+
         // Display the description in the "description" div
-        document.getElementById('description').innerHTML = `<h2>Description</h2><p>${description}</p>`;
+        document.getElementById('description').innerHTML = `<h2>Description</h2>${descriptionHTML}`;
     } catch (error) {
         console.error('Error fetching description from Gemini API:', error);
         document.getElementById('description').innerHTML = `<p>${error.message}</p>`;
     }
 }
-
 
 /**
  * Asynchronously fetches and parses an XML file.
@@ -237,7 +240,7 @@ async function displayEntity(file, id) {
         }
 
         // Add a back link to the main catalog
-        htmlContent += `<a href="index.html" class="back-link">&larr; Back to Catalog</a>`;
+        htmlContent += `<a href="/" class="back-link">&larr; Back to Catalog</a>`;
 
         // Display the content
         document.getElementById('content').innerHTML = htmlContent;

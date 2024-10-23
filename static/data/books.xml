@@ -21,5 +21,12 @@
         <Genre xlink:href="genres.xml#g3"/>
         <State>Present</State>
     </Book>
+    <Book id="b4">
+        <Title>Animal Farm</Title>
+        <Author xlink:href="authors.xml#a1"/>
+        <Publisher xlink:href="publishers.xml#p4"/>
+        <Genre xlink:href="genres.xml#g4"/>
+        <State>Present</State>
+    </Book>
     <!-- Add more books as needed -->
 </Library>

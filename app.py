@@ -54,13 +54,18 @@ def get_description():
         logging.error("Gemini API configuration missing.")
         return jsonify({'error': 'Server configuration error'}), 500
 
-    # Prepare the JSON payload as per Gemini API requirements
+    # Prepare the JSON payload with explicit instructions
     payload = {
         "contents": [
             {
                 "parts": [
                     {
-                        "text": entity_name
+                        "text": (
+                            f"Provide a detailed description of '{entity_name}'"
+                            "If it is a book include information about the setting, characters, themes, key concepts, and its influence. "
+                            "Do not include any concluding remarks or questions."
+                            "Do not mention any Note at the end about not including concluding remarks or questions."
+                        )
                     }
                 ]
             }

@@ -9,5 +9,8 @@
     <Publisher id="p3">
         <Name>T. Egerton</Name>
     </Publisher>
+    <Publisher id="p4">
+        <Name>Secker and Warburg</Name>
+    </Publisher>
     <!-- Add more publishers as needed -->
 </Publishers>
