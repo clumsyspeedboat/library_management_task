@@ -12,5 +12,8 @@
     <Publisher id="p4">
         <Name>Secker and Warburg</Name>
     </Publisher>
+    <Publisher id="p5">
+        <Name>Penguin Life</Name>
+    </Publisher>
     <!-- Add more publishers as needed -->
 </Publishers>

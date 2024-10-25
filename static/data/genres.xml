@@ -12,5 +12,8 @@
     <Genre id="g4">
         <Name>Satire</Name>
     </Genre>
+    <Genre id="g5">
+        <Name>Self Help</Name>
+    </Genre>
     <!-- Add more genres as needed -->
 </Genres>

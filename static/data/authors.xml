@@ -9,5 +9,8 @@
     <Author id="a3">
         <Name>Jane Austen</Name>
     </Author>
+    <Author id="a4">
+        <Name>Francesc Miralles and Hector Garcia</Name>
+    </Author>
     <!-- Add more authors as needed -->
 </Authors>
