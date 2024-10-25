@@ -28,11 +28,11 @@
         <Genre xlink:href="genres.xml#g4"/>
         <State>Present</State>
     </Book>
-    <Book id="b4">
+    <Book id="b5">
         <Title>Ikigai</Title>
         <Author xlink:href="authors.xml#a4"/>
-        <Publisher xlink:href="publishers.xml#p4"/>
-        <Genre xlink:href="genres.xml#g4"/>
+        <Publisher xlink:href="publishers.xml#p5"/>
+        <Genre xlink:href="genres.xml#g5"/>
         <State>Present</State>
     </Book>
     <!-- Add more books as needed -->
