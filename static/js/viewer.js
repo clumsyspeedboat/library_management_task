@@ -1,4 +1,4 @@
-// viewer.js
+// static/js/viewer.js
 
 window.onload = function () {
     const params = getQueryParams();
@@ -8,7 +8,7 @@ window.onload = function () {
     if (file && id) {
         displayEntity(file, id);
     } else {
-        document.getElementById('content').innerHTML = '<p>Invalid parameters.</p>';
+        displayError('Invalid parameters. Please provide both file and id in the URL.');
     }
 };
 
@@ -18,12 +18,15 @@ window.onload = function () {
  */
 function getQueryParams() {
     const params = {};
-    window.location.search.substring(1).split("&").forEach(pair => {
-        const [key, value] = pair.split("=");
-        if (key) {
-            params[decodeURIComponent(key)] = decodeURIComponent(value || '');
-        }
-    });
+    const queryString = window.location.search.substring(1);
+    if (queryString) {
+        queryString.split("&").forEach(pair => {
+            const [key, value] = pair.split("=");
+            if (key) {
+                params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+            }
+        });
+    }
     return params;
 }
 
@@ -55,13 +58,22 @@ async function fetchGeminiDescription(entityName) {
         const descriptionMarkdown = data.description || 'No description available.';
 
         // Convert Markdown to HTML using Marked.js
-        const descriptionHTML = marked.parse(descriptionMarkdown);
-
-        // Display the description in the "description" div
-        document.getElementById('description').innerHTML = `<h2>Description</h2>${descriptionHTML}`;
+        if (typeof marked !== 'undefined') {
+            const descriptionHTML = marked.parse(descriptionMarkdown);
+            // Display the description in the "description" div
+            const descriptionDiv = document.getElementById('description');
+            if (descriptionDiv) {
+                descriptionDiv.innerHTML = `<h2>Description</h2>${descriptionHTML}`;
+            } else {
+                console.warn('"description" div not found in the HTML.');
+            }
+        } else {
+            console.error('Marked.js library is not loaded.');
+            displayError('Failed to load description formatting library.');
+        }
     } catch (error) {
         console.error('Error fetching description from Gemini API:', error);
-        document.getElementById('description').innerHTML = `<p>${error.message}</p>`;
+        displayError(`Error fetching description: ${error.message}`);
     }
 }
 
@@ -125,7 +137,7 @@ async function displayEntity(file, id) {
         // Select the entity by its ID
         const entity = mainDoc.querySelector(`[id='${id}']`);
         if (!entity) {
-            document.getElementById('content').innerHTML = '<p>Entity not found.</p>';
+            displayError('Entity not found.');
             return;
         }
 
@@ -243,15 +255,44 @@ async function displayEntity(file, id) {
         htmlContent += `<a href="/" class="back-link">&larr; Back to Catalog</a>`;
 
         // Display the content
-        document.getElementById('content').innerHTML = htmlContent;
+        const contentDiv = document.getElementById('content');
+        if (contentDiv) {
+            contentDiv.innerHTML = htmlContent;
+        } else {
+            console.warn('"content" div not found in the HTML.');
+            displayError('Content area not found in the HTML.');
+        }
 
         // Fetch and display the Gemini description (if entityName exists)
         if (entityName) {
             fetchGeminiDescription(entityName);
         }
-
     } catch (error) {
         console.error('Error displaying entity:', error);
-        document.getElementById('content').innerHTML = `<p>Error loading entity details.</p>`;
+        displayError('Error loading entity details.');
     }
+}
+
+/**
+ * Function to display error messages within the page.
+ * @param {string} message - The error message to display.
+ */
+function displayError(message) {
+    let errorDiv = document.getElementById('error-message');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'error-message';
+        errorDiv.className = 'error-message';
+        // Insert the error message at the top of the main content
+        const mainContent = document.querySelector('.container');
+        if (mainContent) {
+            mainContent.insertBefore(errorDiv, mainContent.firstChild);
+        } else {
+            console.warn('Main content container not found.');
+            // Fallback: append to body
+            document.body.insertBefore(errorDiv, document.body.firstChild);
+        }
+    }
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
 }

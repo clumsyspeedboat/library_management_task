@@ -1,33 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Book Details</title>
-    <!-- Link to External CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block title %}View Details - Library Catalog{% endblock %}
 
-<body class="viewer">
-    <div class="container">
-        <!-- Content Area -->
-        <div id="content">
-            <!-- Book details will be injected here -->
-        </div>
-
-        <!-- Description Section -->
-        <div id="description">
-            <!-- Description from Gemini API will be injected here -->
-        </div>
-
-        <!-- Back to Catalog Link -->
-        <a href="/" class="back-link">&larr; Back to Catalog</a>
+{% block content %}
+    <div id="content">
+        <!-- Entity details will be populated here by viewer.js -->
+        <div id="description"></div>
     </div>
 
-    <!-- Include Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="/static/js/viewer.js"></script>
-</body>
+    <!-- Description Section -->
+    <div id="description">
+        <h2>Description</h2>
+        <p id="book-description">Loading description...</p>
+    </div>
+{% endblock %}
 
-</html>
+{% block scripts %}
+    {{ super() }}
+    <!-- Include Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Include the external viewer.js script -->
+    <script src="{{ url_for('static', filename='js/viewer.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Library Catalog{% endblock %}</title>
+    <!-- Responsive Meta Tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Link to External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Favicon (Optional) -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+</head>
+
+<body>
+    <!-- Header with Navigation Menu -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <h1>Library Management System</h1>
+            </div>
+            <nav aria-label="Main Navigation">
+                <ul class="nav-links">
+                    <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+                    <li><a href="/sparql" class="{% if request.path == '/sparql' %}active{% endif %}">SPARQL Query Executor</a></li>
+                    <!-- Add more navigation links here if needed -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="container">
+        {% block content %}
+        <!-- Child templates will inject content here -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer (Optional) -->
+    <footer>
+        <div class="container footer-container">
+            <p>&copy; {{ current_year }} Library Catalog. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Link to External JS -->
+    {% block scripts %}
+    <!-- Child templates can inject additional scripts here -->
+    {% endblock %}
+</body>
+
+</html>

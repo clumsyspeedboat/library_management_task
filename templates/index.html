@@ -1,83 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Library Catalog</title>
-    <!-- Link to External CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block title %}Home - Library Catalog{% endblock %}
 
-<body>
-    <div class="container">
-        <h1>Book Catalog</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Book ID</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Publisher</th>
-                    <th>Genre</th>
-                    <th>Borrower</th>
-                    <th>Borrow Date</th>
-                    <th>Return Date</th>
-                    <th>State</th>
-                </tr>
-            </thead>
-            <tbody id="book-table">
-                <!-- Book entries will be populated here -->
-            </tbody>
-        </table>
+{% block content %}
+    <h1>Book Catalog</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Book ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Publisher</th>
+                <th>Genre</th>
+                <th>Borrower</th>
+                <th>Borrow Date</th>
+                <th>Return Date</th>
+                <th>State</th>
+            </tr>
+        </thead>
+        <tbody id="book-table">
+            <!-- Book entries will be populated here -->
+        </tbody>
+    </table>
 
-        <!-- Forms Container -->
-        <div class="forms-container">
-            <!-- Borrow Form -->
-            <div class="form-container">
-                <h2>Borrow Book</h2>
-                <form id="borrowForm">
-                    <label for="borrowBookId">Book:</label>
-                    <select id="borrowBookId" required>
-                        <option value="">Select a Book</option>
-                        <!-- Options will be populated dynamically -->
-                    </select>
+    <!-- Forms Container -->
+    <div class="forms-container">
+        <!-- Borrow Form -->
+        <div class="form-container">
+            <h2>Borrow Book</h2>
+            <form id="borrowForm">
+                <label for="borrowBookId">Book:</label>
+                <select id="borrowBookId" required>
+                    <option value="">Select a Book</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
 
-                    <label for="borrowerName">Borrower's Name:</label>
-                    <input type="text" id="borrowerName" required>
+                <label for="borrowerName">Borrower's Name:</label>
+                <input type="text" id="borrowerName" required>
 
-                    <label for="borrowDate">Borrow Date:</label>
-                    <input type="date" id="borrowDate" required>
+                <label for="borrowDate">Borrow Date:</label>
+                <input type="date" id="borrowDate" required>
 
-                    <button type="submit">Borrow Book</button>
-                </form>
-            </div>
-
-            <!-- Return Form -->
-            <div class="form-container">
-                <h2>Return Book</h2>
-                <form id="returnForm">
-                    <label for="returnBookId">Book:</label>
-                    <select id="returnBookId" required>
-                        <option value="">Select a Book</option>
-                        <!-- Options will be populated dynamically -->
-                    </select>
-
-                    <label for="returnDate">Return Date:</label>
-                    <input type="date" id="returnDate" required>
-
-                    <button type="submit">Return Book</button>
-                </form>
-            </div>
+                <button type="submit">Borrow Book</button>
+            </form>
         </div>
 
-        <!-- Clear Data Button -->
+        <!-- Return Form -->
         <div class="form-container">
-            <button id="clearDataBtn">Clear All Borrowing Data</button>
+            <h2>Return Book</h2>
+            <form id="returnForm">
+                <label for="returnBookId">Book:</label>
+                <select id="returnBookId" required>
+                    <option value="">Select a Book</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <label for="returnDate">Return Date:</label>
+                <input type="date" id="returnDate" required>
+
+                <button type="submit">Return Book</button>
+            </form>
         </div>
     </div>
 
-    <!-- Link to External JS -->
-    <script src="/static/js/index.js"></script>
-</body>
+    <!-- Clear Data Button -->
+    <div class="clear-data-container">
+        <button id="clearDataBtn">Clear All Borrowing Data</button>
+    </div>
+{% endblock %}
 
-</html>
+{% block scripts %}
+    {{ super() }}
+    <!-- Include the external index.js script -->
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
