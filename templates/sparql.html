@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}SPARQL Query Executor - Library Catalog{% endblock %}
+
+{% block content %}
+    <h1>SPARQL Query Executor</h1>
+
+    <!-- SPARQL Form -->
+    <div class="form-container">
+        <form id="sparqlForm">
+            <label for="sparqlEndpoint">SPARQL Endpoint:</label>
+            <input type="text" id="sparqlEndpoint" placeholder="Enter SPARQL endpoint URL" required>
+
+            <label for="sparqlQuery">SPARQL Query:</label>
+            <textarea id="sparqlQuery" rows="10" placeholder="Enter your SPARQL query here..." required></textarea>
+
+            <button type="submit">Execute Query</button>
+        </form>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" style="display: none; text-align: center;">
+        <p>Executing query, please wait...</p>
+    </div>
+
+    <!-- Results Section -->
+    <div class="form-container" id="resultsContainer" style="display: none;">
+        <h2>Query Results</h2>
+        <table id="resultsTable">
+            <thead id="resultsHead">
+                <!-- Headers will be populated dynamically -->
+            </thead>
+            <tbody id="resultsBody">
+                <!-- Results will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/sparql.js') }}"></script>
+{% endblock %}

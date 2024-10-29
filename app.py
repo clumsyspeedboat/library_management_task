@@ -3,6 +3,8 @@ import configparser
 import requests
 import logging
 from flask_cors import CORS
+from SPARQLWrapper import SPARQLWrapper, JSON
+from datetime import datetime
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
@@ -33,12 +35,20 @@ except Exception as e:
 # Route to serve the home page
 @app.route('/')
 def home():
-    return render_template('index.html')
+    current_year = datetime.now().year
+    return render_template('index.html', current_year=current_year)
 
 # Route to serve viewer.html
 @app.route('/viewer.html')
 def viewer():
-    return render_template('viewer.html')
+    current_year = datetime.now().year
+    return render_template('viewer.html', current_year=current_year)
+
+# Route to serve sparql.html
+@app.route('/sparql')
+def sparql():
+    current_year = datetime.now().year
+    return render_template('sparql.html', current_year=current_year)
 
 # API route to fetch description from Gemini API
 @app.route('/api/description', methods=['GET'])
@@ -61,10 +71,10 @@ def get_description():
                 "parts": [
                     {
                         "text": (
-                            f"Provide a detailed description of '{entity_name}'"
-                            "If it is a book include information about the setting, characters, themes, key concepts, and its influence. "
-                            "Do not include any concluding remarks or questions."
-                            "Do not mention any Note at the end about not including concluding remarks or questions."
+                            f"Provide a detailed description of '{entity_name}'. "
+                            "If it is a book, include information about the setting, characters, themes, key concepts, and its influence. "
+                            "Do not include any concluding remarks or questions. "
+                            "Do not mention any note at the end about not including concluding remarks or questions."
                         )
                     }
                 ]
@@ -118,6 +128,50 @@ def get_description():
     except Exception as e:
         logging.exception(f"Unexpected error: {e}")
         return jsonify({'error': 'An unexpected error occurred', 'message': str(e)}), 500
+
+# API route to handle SPARQL queries
+@app.route('/api/sparql', methods=['POST'])
+def execute_sparql():
+    data = request.get_json()
+    logging.debug(f"Received SPARQL request data: {data}")
+
+    if not data:
+        logging.warning("No data received in SPARQL request.")
+        return jsonify({'error': 'No data provided'}), 400
+
+    endpoint = data.get('endpoint')
+    query = data.get('query')
+
+    if not endpoint or not query:
+        logging.warning("Missing endpoint or query in SPARQL request.")
+        return jsonify({'error': 'Both endpoint and query are required'}), 400
+
+    # Initialize SPARQLWrapper
+    sparql = SPARQLWrapper(endpoint)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+
+    try:
+        results = sparql.query().convert()
+        logging.debug(f"SPARQL query results: {results}")
+
+        # Extract variables and bindings
+        vars = results['head']['vars']
+        bindings = results['results']['bindings']
+
+        # Prepare data for frontend
+        data_table = []
+        for binding in bindings:
+            row = {}
+            for var in vars:
+                row[var] = binding.get(var, {}).get('value', '')
+            data_table.push(row)
+
+        return jsonify({'variables': vars, 'results': data_table})
+
+    except Exception as e:
+        logging.exception(f"Error executing SPARQL query: {e}")
+        return jsonify({'error': 'Failed to execute SPARQL query', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
