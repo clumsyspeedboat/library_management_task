@@ -1,0 +1,114 @@
+@prefix ex: <http://example.org/library#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Classes
+ex:Library a rdf:Class .
+ex:Book a rdf:Class .
+ex:Author a rdf:Class .
+ex:Publisher a rdf:Class .
+ex:Genre a rdf:Class .
+
+# Relationships
+ex:CONTAINS a rdf:Property ;
+    rdf:type rdf:Property ;
+    rdf:domain ex:Library ;
+    rdf:range ex:Book .
+
+ex:HAS_AUTHOR a rdf:Property ;
+    rdf:type rdf:Property ;
+    rdf:domain ex:Book ;
+    rdf:range ex:Author .
+
+ex:HAS_PUBLISHER a rdf:Property ;
+    rdf:type rdf:Property ;
+    rdf:domain ex:Book ;
+    rdf:range ex:Publisher .
+
+ex:HAS_GENRE a rdf:Property ;
+    rdf:type rdf:Property ;
+    rdf:domain ex:Book ;
+    rdf:range ex:Genre .
+
+# Instances
+
+# Library
+ex:MyLibrary a ex:Library ;
+    ex:CONTAINS ex:b1, ex:b2, ex:b3, ex:b4, ex:b5 .
+
+# Authors
+ex:a1 a ex:Author ;
+    ex:name "George Orwell" .
+
+ex:a2 a ex:Author ;
+    ex:name "Harper Lee" .
+
+ex:a3 a ex:Author ;
+    ex:name "Jane Austen" .
+
+ex:a4 a ex:Author ;
+    ex:name "Francesc Miralles and Hector Garcia" .
+
+# Publishers
+ex:p1 a ex:Publisher ;
+    ex:name "Penguin Books" .
+
+ex:p2 a ex:Publisher ;
+    ex:name "J.B. Lippincott & Co." .
+
+ex:p3 a ex:Publisher ;
+    ex:name "T. Egerton" .
+
+ex:p4 a ex:Publisher ;
+    ex:name "Secker and Warburg" .
+
+ex:p5 a ex:Publisher ;
+    ex:name "Penguin Life" .
+
+# Genres
+ex:g1 a ex:Genre ;
+    ex:name "Fiction" .
+
+ex:g3 a ex:Genre ;
+    ex:name "Romance" .
+
+ex:g4 a ex:Genre ;
+    ex:name "Satire" .
+
+ex:g5 a ex:Genre ;
+    ex:name "Self Help" .
+
+# Books
+ex:b1 a ex:Book ;
+    ex:title "1984" ;
+    ex:HAS_AUTHOR ex:a1 ;
+    ex:HAS_PUBLISHER ex:p1 ;
+    ex:HAS_GENRE ex:g1 ;
+    ex:state "Present" .
+
+ex:b2 a ex:Book ;
+    ex:title "To Kill a Mockingbird" ;
+    ex:HAS_AUTHOR ex:a2 ;
+    ex:HAS_PUBLISHER ex:p2 ;
+    ex:HAS_GENRE ex:g1 ;
+    ex:state "Present" .
+
+ex:b3 a ex:Book ;
+    ex:title "Pride and Prejudice" ;
+    ex:HAS_AUTHOR ex:a3 ;
+    ex:HAS_PUBLISHER ex:p3 ;
+    ex:HAS_GENRE ex:g3 ;
+    ex:state "Present" .
+
+ex:b4 a ex:Book ;
+    ex:title "Animal Farm" ;
+    ex:HAS_AUTHOR ex:a1 ;
+    ex:HAS_PUBLISHER ex:p4 ;
+    ex:HAS_GENRE ex:g4 ;
+    ex:state "Present" .
+
+ex:b5 a ex:Book ;
+    ex:title "Ikigai" ;
+    ex:HAS_AUTHOR ex:a4 ;
+    ex:HAS_PUBLISHER ex:p5 ;
+    ex:HAS_GENRE ex:g5 ;
+    ex:state "Present" .

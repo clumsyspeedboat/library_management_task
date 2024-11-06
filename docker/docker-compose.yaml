@@ -1,0 +1,28 @@
+version: '3.8'  # You can omit the version as it's optional in newer Docker Compose versions
+
+services:
+  neo4j:
+    image: neo4j:5.7-community  # Use the appropriate Neo4j version
+    container_name: neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"    # Neo4j Browser HTTP
+      - "7687:7687"    # Neo4j Bolt Protocol
+    volumes:
+      - ./data:/data                       # Persist Neo4j data
+      - ./logs:/logs                       # Persist Neo4j logs
+      - ./import:/var/lib/neo4j/import     # Map current directory's 'import' folder
+      - ./plugins:/plugins                 # Persist Neo4j plugins
+    environment:
+      - NEO4J_AUTH=neo4j/password  # Set Neo4j username and password
+      - NEO4J_PLUGINS=["n10s"]      # Install neosemantics plugin
+      - NEO4J_dbms_security_procedures_unrestricted=n10s.*
+      - NEO4J_dbms_security_procedures_allowlist=n10s.*
+      - NEO4J_dbms_directories_import=/var/lib/neo4j/import  # Ensure import directory is correctly set
+
+# Define volumes for data persistence (optional if using bind mounts)
+volumes:
+  data:
+  logs:
+  import:
+  plugins:
