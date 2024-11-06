@@ -1,4 +1,4 @@
-```markdown
+
 # Library Management Ontology with Neo4j
 
 This project sets up a **Neo4j** graph database with the **Neosemantics (n10s)** plugin to manage a simple library ontology. The ontology models a library containing books, authors, genres, and publishers. The setup uses **Docker** and **Docker Compose** for easy deployment and management.
