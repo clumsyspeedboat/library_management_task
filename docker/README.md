@@ -31,17 +31,10 @@ Follow these steps to set up Neo4j with Neosemantics and import your ontology.
 
 ### 1. Prepare the Project Directory
 
-1. **Create a Project Directory:**
+   **Create Necessary Subdirectories:**
 
    ```bash
-   mkdir library_management_task
-   cd library_management_task
-   ```
-
-2. **Create Necessary Subdirectories:**
-
-   ```bash
-   mkdir import data logs plugins
+   mkdir import 
    ```
 
 ### 2. Place the Ontology File
