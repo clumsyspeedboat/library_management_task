@@ -165,7 +165,7 @@ def execute_sparql():
             row = {}
             for var in vars:
                 row[var] = binding.get(var, {}).get('value', '')
-            data_table.push(row)
+            data_table.append(row)  # Corrected from push to append
 
         return jsonify({'variables': vars, 'results': data_table})
 
