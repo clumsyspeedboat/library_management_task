@@ -108,7 +108,7 @@ Follow these steps to set up Neo4j with Neosemantics and import your ontology.
 2. **Run the Import Command in Neo4j Browser:**
 
    ```cypher
-   CALL n10s.rdf.import.fetch("file:///ontology.ttl", "Turtle");
+   CALL n10s.rdf.import.fetch("file:///var/lib/neo4j/import/ontology.ttl", "Turtle");
    ```
 
    - **Parameters:**
