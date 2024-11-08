@@ -93,10 +93,16 @@ Follow these steps to set up Neo4j with Neosemantics and import your ontology.
 2. **Run the Initialization Command:**
 
    ```cypher
-   CALL n10s.graphconfig.init();
+   CALL n10s.graphconfig.init({ handleVocabUris: "IGNORE" });
    ```
 
    - **Expected Outcome:** A success message indicating that the graph configuration has been initialized.
+
+3. **Create constraint to ensure unique URIs on Resources:**
+
+   ```cypher
+   CREATE CONSTRAINT n10s_unique_uri FOR (r:Resource) REQUIRE r.uri IS UNIQUE;
+   ```
 
 ### 6. Import the Ontology
 
