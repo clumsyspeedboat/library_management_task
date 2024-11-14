@@ -1,3 +1,5 @@
+<!-- templates/index.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,12 +8,31 @@
     <title>Library Catalog</title>
     <!-- Link to External CSS -->
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Include Vis.js CSS -->
+    <link href="https://unpkg.com/vis-network/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
     <div class="container">
-        <h1>Book Catalog</h1>
-        <table>
+        <h1>Library Catalog</h1>
+
+        <!-- Toggle Switch -->
+        <div class="toggle-container">
+            <span>Table</span>
+            <label class="switch">
+                <input type="checkbox" id="viewToggle">
+                <span class="slider"></span>
+            </label>
+            <span>Graph</span>
+        </div>
+
+        <!-- Table View -->
+        <table id="tableView">
             <thead>
                 <tr>
                     <th>Book ID</th>
@@ -29,6 +50,9 @@
                 <!-- Book entries will be populated here -->
             </tbody>
         </table>
+
+        <!-- Graph View -->
+        <div id="network"></div>
 
         <!-- Forms Container -->
         <div class="forms-container">
@@ -71,13 +95,15 @@
         </div>
 
         <!-- Clear Data Button -->
-        <div class="form-container">
+        <div class="clear-data-container">
             <button id="clearDataBtn">Clear All Borrowing Data</button>
         </div>
     </div>
 
     <!-- Link to External JS -->
     <script src="/static/js/index.js"></script>
+    <!-- Include Vis.js Library -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </body>
 
 </html>

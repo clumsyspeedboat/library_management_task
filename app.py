@@ -1,8 +1,11 @@
+# app.py
+
 from flask import Flask, render_template, jsonify, request
 import configparser
 import requests
 import logging
 from flask_cors import CORS
+from rdflib import Graph, Namespace, RDF, URIRef
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
@@ -61,8 +64,8 @@ def get_description():
                 "parts": [
                     {
                         "text": (
-                            f"Provide a detailed description of '{entity_name}'"
-                            "If it is a book include information about the setting, characters, themes, key concepts, and its influence. "
+                            f"Provide a detailed description of '{entity_name}'. "
+                            "If it is a book, include information about the setting, characters, themes, key concepts, and its influence. "
                             "Do not include any concluding remarks or questions."
                             "Do not mention any Note at the end about not including concluding remarks or questions."
                         )
@@ -118,6 +121,62 @@ def get_description():
     except Exception as e:
         logging.exception(f"Unexpected error: {e}")
         return jsonify({'error': 'An unexpected error occurred', 'message': str(e)}), 500
+
+# New API route to fetch ontology data for graph view
+@app.route('/api/ontology_graph', methods=['GET'])
+def get_ontology_graph():
+    ontology_file = 'docker/import/ontology.ttl'  # Path to your ontology file
+    g = Graph()
+    try:
+        g.parse(ontology_file, format='turtle')
+        logging.info("Ontology file parsed successfully.")
+    except Exception as e:
+        logging.error(f"Failed to parse ontology file: {e}")
+        return jsonify({'error': 'Failed to parse ontology file'}), 500
+
+    EX = Namespace("http://example.org/library#")
+
+    nodes = []
+    edges = []
+    node_ids = set()
+
+    # Extract Books, Authors, Publishers, Genres as nodes
+    for s, p, o in g:
+        if p == RDF.type:
+            if o == EX.Book:
+                title = g.value(s, EX.title)
+                nodes.append({"id": str(s), "label": str(title), "group": "Book"})
+            elif o == EX.Author or o == EX.Publisher or o == EX.Genre:
+                name = g.value(s, EX.name)
+                node_type = o.split('#')[-1]  # Author, Publisher, Genre
+                nodes.append({"id": str(s), "label": str(name), "group": node_type})
+            elif o == EX.Library:
+                name = g.value(s, EX.name) if g.value(s, EX.name) else "Library"
+                nodes.append({"id": str(s), "label": str(name), "group": "Library"})
+
+    # Extract relationships as edges
+    for s, p, o in g:
+        if p in [EX.HAS_AUTHOR, EX.HAS_PUBLISHER, EX.HAS_GENRE]:
+            relationship = p.split('#')[-1]  # HAS_AUTHOR, etc.
+            edges.append({
+                "from": str(s),
+                "to": str(o),
+                "label": relationship
+            })
+        elif p == EX.CONTAINS and isinstance(o, URIRef):
+            # Assuming CONTAINS relates Library to Book
+            edges.append({
+                "from": str(s),
+                "to": str(o),
+                "label": "CONTAINS"
+            })
+
+    # Add Library node if not present
+    library_uri = "http://example.org/library#MyLibrary"
+    if not any(node['id'] == library_uri for node in nodes):
+        nodes.append({"id": library_uri, "label": "MyLibrary", "group": "Library"})
+
+    return jsonify({"nodes": nodes, "edges": edges})
 
 if __name__ == '__main__':
     app.run(debug=True)
