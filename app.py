@@ -1,11 +1,10 @@
 # app.py
 
 from flask import Flask, render_template, jsonify, request
-import configparser
-import requests
-import logging
-from flask_cors import CORS
+from gemini import init_gemini, generate_description
 from rdflib import Graph, Namespace, RDF, URIRef
+import configparser, logging
+from flask_cors import CORS
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
@@ -28,6 +27,11 @@ try:
     GEMINI_API_KEY = config.get('API', 'GEMINI_API_KEY')
     GEMINI_API_URL = config.get('API', 'GEMINI_API_URL')
     logging.info("Gemini API configuration loaded successfully.")
+
+    # Initialize the Gemini API
+    init_gemini(
+        api_key=GEMINI_API_KEY,
+    )
 except Exception as e:
     logging.error("Error reading config.ini: %s", e)
     GEMINI_API_KEY = None
@@ -57,70 +61,17 @@ def get_description():
         logging.error("Gemini API configuration missing.")
         return jsonify({'error': 'Server configuration error'}), 500
 
-    # Prepare the JSON payload with explicit instructions
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": (
-                            f"Provide a detailed description of '{entity_name}'. "
-                            "If it is a book, include information about the setting, characters, themes, key concepts, and its influence. "
-                            "Do not include any concluding remarks or questions."
-                            "Do not mention any Note at the end about not including concluding remarks or questions."
-                        )
-                    }
-                ]
-            }
-        ]
-    }
-
-    # Construct the API URL with the API key as a query parameter
-    api_url_with_key = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
-
-    headers = {
-        "Content-Type": "application/json"
-    }
-
-    # Log the API URL and payload for debugging
-    logging.debug(f"API URL: {api_url_with_key}")
-    logging.debug(f"Payload: {payload}")
-
     try:
-        # Make the POST request to the Gemini API
-        response = requests.post(
-            api_url_with_key,  # Include the API key in the URL
-            headers=headers,
-            json=payload,
-            timeout=10  # seconds
-        )
-        logging.debug(f"Gemini API response status: {response.status_code}")  # Changed to DEBUG
-
-        if response.status_code != 200:
-            logging.error(f"Failed to fetch description from Gemini API. Status code: {response.status_code}")
-            logging.error(f"Response content: {response.text}")
-            return jsonify({
-                'error': 'Failed to fetch description from Gemini API',
-                'status_code': response.status_code,
-                'response': response.text
-            }), 500
-
-        response_data = response.json()
-        # Extract the description from the response
-        description = response_data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', 'No description available.')
-        logging.debug(f"Fetched description: {description}")  # Changed to DEBUG
-
-        return jsonify({'description': description})
-
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Exception during Gemini API request: {e}")
-        return jsonify({'error': 'Failed to connect to Gemini API', 'message': str(e)}), 500
-    except ValueError as e:
-        logging.error(f"JSON decoding failed: {e}")
-        return jsonify({'error': 'Invalid JSON response from Gemini API', 'message': str(e)}), 500
+        return jsonify({
+            'description': get_description(
+                entity_name=entity_name,
+            ),
+        })
     except Exception as e:
-        logging.exception(f"Unexpected error: {e}")
-        return jsonify({'error': 'An unexpected error occurred', 'message': str(e)}), 500
+        return jsonify({
+            'error': 'An error occurred',
+            'message': str(e),
+        }), 500
 
 # New API route to fetch ontology data for graph view
 @app.route('/api/ontology_graph', methods=['GET'])
