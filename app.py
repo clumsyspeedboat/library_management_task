@@ -1,7 +1,7 @@
 # app.py
 
+from gemini import init_gemini, generate_description, init_chat, send_chat_message
 from flask import Flask, render_template, jsonify, request
-from gemini import init_gemini, generate_description
 from rdflib import Graph, Namespace, RDF, URIRef
 import configparser, logging
 from flask_cors import CORS
@@ -46,6 +46,42 @@ def home():
 @app.route('/viewer.html')
 def viewer():
     return render_template('viewer.html')
+
+# Route to serve chatbot.html
+@app.route('/chatbot.html')
+def chatbot():
+    return render_template('chatbot.html')
+
+@app.route('/api/chat/init', methods=['GET'])
+def get_chat_init():
+    logging.debug("Received chat init request.")
+
+    try:
+        return jsonify({
+            'response': init_chat(),
+        })
+    except Exception as e:
+        return jsonify({
+            'error': 'An error occurred',
+            'message': str(e),
+        }), 500
+
+@app.route('/api/chat/message', methods=['GET'])
+def get_chat_message():
+    message = request.args.get('message')
+    logging.debug(f"Received chat message: {message}")  # Changed to DEBUG
+
+    try:
+        return jsonify({
+            'response': send_chat_message(
+                message=message,
+            ),
+        })
+    except Exception as e:
+        return jsonify({
+            'error': 'An error occurred',
+            'message': str(e),
+        }), 500
 
 # API route to fetch description from Gemini API
 @app.route('/api/description', methods=['GET'])

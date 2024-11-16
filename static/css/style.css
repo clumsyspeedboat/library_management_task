@@ -30,6 +30,11 @@ a:hover {
     padding: 20px 0;
 }
 
+.title {
+    display: flex;
+    justify-content: space-between;
+}
+
 /* ==========================================================================
    Typography
    ========================================================================== */
@@ -576,4 +581,58 @@ input:checked + .slider:before {
         font-size: 14px;
         margin-top: 20px;
     }
+}
+
+/* ==========================================================================
+   AI Chatbot Styles
+   ========================================================================== */
+#chat {
+    margin-top: 40px;
+    padding: 30px;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.from-user {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.from-ai {
+    display: flex;
+    flex-direction: row;
+}
+
+.message {
+    margin: 20px 0;
+    padding: 10px 20px;
+    border-radius: 10px;
+    background-color: #007BFF;
+    color: #fff;
+    max-width: 70%;
+    display: inline-block;
+    font-size: 18px;
+}
+
+.user {
+    background-color: #6c757d;
+}
+
+.ai {
+    background-color: #007BFF;
+}
+
+#chatbox {
+    display: flex;
+    align-items: baseline;
+    gap: 1em;
+}
+
+.disabled {
+    background-color: #6c757d !important;
+    filter: opacity(0.5);
 }
