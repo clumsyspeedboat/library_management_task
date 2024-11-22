@@ -99,11 +99,12 @@ def get_description():
 
     try:
         return jsonify({
-            'description': get_description(
+            'description': generate_description(
                 entity_name=entity_name,
             ),
         })
     except Exception as e:
+        print(e)
         return jsonify({
             'error': 'An error occurred',
             'message': str(e),
