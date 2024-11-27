@@ -1,114 +1,170 @@
 @prefix ex: <http://example.org/library#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Classes
-ex:Library a rdf:Class .
-ex:Book a rdf:Class .
-ex:Author a rdf:Class .
-ex:Publisher a rdf:Class .
-ex:Genre a rdf:Class .
+ex:Author a rdfs:Class .
 
-# Relationships
+ex:Book a rdfs:Class .
+
+ex:BorrowingEvent a rdfs:Class .
+
+ex:Faculty a rdfs:Class ;
+    rdfs:subClassOf ex:User .
+
+ex:Genre a rdfs:Class .
+
+ex:Library a rdfs:Class .
+
+ex:Publisher a rdfs:Class .
+
+ex:Student a rdfs:Class ;
+    rdfs:subClassOf ex:User .
+
+ex:User a rdfs:Class .
+
 ex:CONTAINS a rdf:Property ;
-    rdf:type rdf:Property ;
-    rdf:domain ex:Library ;
-    rdf:range ex:Book .
+    rdfs:domain ex:Library ;
+    rdfs:range ex:Book .
 
 ex:HAS_AUTHOR a rdf:Property ;
-    rdf:type rdf:Property ;
-    rdf:domain ex:Book ;
-    rdf:range ex:Author .
+    rdfs:domain ex:Book ;
+    rdfs:range ex:Author .
 
-ex:HAS_PUBLISHER a rdf:Property ;
-    rdf:type rdf:Property ;
-    rdf:domain ex:Book ;
-    rdf:range ex:Publisher .
+ex:HAS_BOOK a rdf:Property ;
+    rdfs:domain ex:BorrowingEvent ;
+    rdfs:range ex:Book .
+
+ex:HAS_BORROWER a rdf:Property ;
+    rdfs:domain ex:BorrowingEvent ;
+    rdfs:range ex:User .
+
+ex:HAS_DATE a rdf:Property ;
+    rdfs:domain ex:BorrowingEvent ;
+    rdfs:range xsd:date .
+
+ex:HAS_FACULTY_ID a rdf:Property ;
+    rdfs:domain ex:Faculty ;
+    rdfs:range xsd:string .
 
 ex:HAS_GENRE a rdf:Property ;
-    rdf:type rdf:Property ;
-    rdf:domain ex:Book ;
-    rdf:range ex:Genre .
+    rdfs:domain ex:Book ;
+    rdfs:range ex:Genre .
 
-# Instances
+ex:HAS_NAME a rdf:Property ;
+    rdfs:domain ex:User ;
+    rdfs:range xsd:string .
 
-# Library
+ex:HAS_PUBLISHER a rdf:Property ;
+    rdfs:domain ex:Book ;
+    rdfs:range ex:Publisher .
+
+ex:HAS_STUDENT_ID a rdf:Property ;
+    rdfs:domain ex:Student ;
+    rdfs:range xsd:string .
+
 ex:MyLibrary a ex:Library ;
-    ex:CONTAINS ex:b1, ex:b2, ex:b3, ex:b4, ex:b5 .
+    ex:CONTAINS ex:b1,
+        ex:b2,
+        ex:b3,
+        ex:b4,
+        ex:b5 .
 
-# Authors
-ex:a1 a ex:Author ;
-    ex:name "George Orwell" .
+ex:be_4f265b21-2cd7-4458-a3d6-e343d7c75a60 a ex:BorrowingEvent ;
+    ex:HAS_BOOK ex:b2 ;
+    ex:HAS_BORROWER ex:u_da709a21-4258-44ca-a1c6-11eb1afb7fce ;
+    ex:HAS_DATE "2024-11-23"^^xsd:date .
+
+ex:u1 a ex:Student ;
+    ex:HAS_NAME "Alice Smith" ;
+    ex:HAS_STUDENT_ID "S123" .
+
+ex:u2 a ex:Student ;
+    ex:HAS_NAME "Bob Johnson" ;
+    ex:HAS_STUDENT_ID "S456" .
+
+ex:u3 a ex:Faculty ;
+    ex:HAS_FACULTY_ID "F789" ;
+    ex:HAS_NAME "Dr. Emily Davis" .
+
+ex:u4 a ex:Faculty ;
+    ex:HAS_FACULTY_ID "F101" ;
+    ex:HAS_NAME "Prof. Michael Brown" .
 
 ex:a2 a ex:Author ;
-    ex:name "Harper Lee" .
+    ex:HAS_NAME "Harper Lee" .
 
 ex:a3 a ex:Author ;
-    ex:name "Jane Austen" .
+    ex:HAS_NAME "Jane Austen" .
 
 ex:a4 a ex:Author ;
-    ex:name "Francesc Miralles and Hector Garcia" .
+    ex:HAS_NAME "Francesc Miralles and Hector Garcia" .
 
-# Publishers
-ex:p1 a ex:Publisher ;
-    ex:name "Penguin Books" .
-
-ex:p2 a ex:Publisher ;
-    ex:name "J.B. Lippincott & Co." .
-
-ex:p3 a ex:Publisher ;
-    ex:name "T. Egerton" .
-
-ex:p4 a ex:Publisher ;
-    ex:name "Secker and Warburg" .
-
-ex:p5 a ex:Publisher ;
-    ex:name "Penguin Life" .
-
-# Genres
-ex:g1 a ex:Genre ;
-    ex:name "Fiction" .
-
-ex:g3 a ex:Genre ;
-    ex:name "Romance" .
-
-ex:g4 a ex:Genre ;
-    ex:name "Satire" .
-
-ex:g5 a ex:Genre ;
-    ex:name "Self Help" .
-
-# Books
 ex:b1 a ex:Book ;
-    ex:title "1984" ;
     ex:HAS_AUTHOR ex:a1 ;
+    ex:HAS_GENRE ex:g1 ;
+    ex:HAS_NAME "1984" ;
     ex:HAS_PUBLISHER ex:p1 ;
-    ex:HAS_GENRE ex:g1 ;
-    ex:state "Present" .
-
-ex:b2 a ex:Book ;
-    ex:title "To Kill a Mockingbird" ;
-    ex:HAS_AUTHOR ex:a2 ;
-    ex:HAS_PUBLISHER ex:p2 ;
-    ex:HAS_GENRE ex:g1 ;
     ex:state "Present" .
 
 ex:b3 a ex:Book ;
-    ex:title "Pride and Prejudice" ;
     ex:HAS_AUTHOR ex:a3 ;
-    ex:HAS_PUBLISHER ex:p3 ;
     ex:HAS_GENRE ex:g3 ;
+    ex:HAS_NAME "Pride and Prejudice" ;
+    ex:HAS_PUBLISHER ex:p3 ;
     ex:state "Present" .
 
 ex:b4 a ex:Book ;
-    ex:title "Animal Farm" ;
     ex:HAS_AUTHOR ex:a1 ;
-    ex:HAS_PUBLISHER ex:p4 ;
     ex:HAS_GENRE ex:g4 ;
+    ex:HAS_NAME "Animal Farm" ;
+    ex:HAS_PUBLISHER ex:p4 ;
     ex:state "Present" .
 
 ex:b5 a ex:Book ;
-    ex:title "Ikigai" ;
     ex:HAS_AUTHOR ex:a4 ;
-    ex:HAS_PUBLISHER ex:p5 ;
     ex:HAS_GENRE ex:g5 ;
+    ex:HAS_NAME "Ikigai" ;
+    ex:HAS_PUBLISHER ex:p5 ;
     ex:state "Present" .
+
+ex:g3 a ex:Genre ;
+    ex:HAS_NAME "Romance" .
+
+ex:g4 a ex:Genre ;
+    ex:HAS_NAME "Satire" .
+
+ex:g5 a ex:Genre ;
+    ex:HAS_NAME "Self Help" .
+
+ex:p1 a ex:Publisher ;
+    ex:HAS_NAME "Penguin Books" .
+
+ex:p2 a ex:Publisher ;
+    ex:HAS_NAME "J.B. Lippincott & Co." .
+
+ex:p3 a ex:Publisher ;
+    ex:HAS_NAME "T. Egerton" .
+
+ex:p4 a ex:Publisher ;
+    ex:HAS_NAME "Secker and Warburg" .
+
+ex:p5 a ex:Publisher ;
+    ex:HAS_NAME "Penguin Life" .
+
+ex:u_da709a21-4258-44ca-a1c6-11eb1afb7fce a ex:Faculty ;
+    ex:HAS_NAME "Don Quixote" .
+
+ex:a1 a ex:Author ;
+    ex:HAS_NAME "George Orwell" .
+
+ex:b2 a ex:Book ;
+    ex:HAS_AUTHOR ex:a2 ;
+    ex:HAS_GENRE ex:g1 ;
+    ex:HAS_NAME "To Kill a Mockingbird" ;
+    ex:HAS_PUBLISHER ex:p2 ;
+    ex:state "Borrowed" .
+
+ex:g1 a ex:Genre ;
+    ex:HAS_NAME "Fiction" .
+

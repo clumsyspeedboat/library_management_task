@@ -1,134 +1,80 @@
 // static/js/index.js
 
 window.onload = function () {
-    // Show loading indicator
-    document.getElementById('loading').style.display = 'flex';
-
-    // Fetch all XML data concurrently
-    Promise.all([
-        fetch('/static/data/authors.xml').then(response => response.text()),
-        fetch('/static/data/publishers.xml').then(response => response.text()),
-        fetch('/static/data/books.xml').then(response => response.text()),
-        fetch('/static/data/genres.xml').then(response => response.text()) // Fetch genres.xml
-    ]).then(([authorsData, publishersData, booksData, genresData]) => {
-        const parser = new DOMParser();
-
-        // Parse authors.xml
-        const authorsDoc = parser.parseFromString(authorsData, "application/xml");
-        const authors = {};
-        const authorsList = authorsDoc.getElementsByTagName('Author');
-        for (let i = 0; i < authorsList.length; i++) {
-            const author = authorsList[i];
-            const id = author.getAttribute('id');
-            const name = author.getElementsByTagName('Name')[0].textContent;
-            authors[id] = name;
-        }
-
-        // Parse publishers.xml
-        const publishersDoc = parser.parseFromString(publishersData, "application/xml");
-        const publishers = {};
-        const publishersList = publishersDoc.getElementsByTagName('Publisher');
-        for (let i = 0; i < publishersList.length; i++) {
-            const publisher = publishersList[i];
-            const id = publisher.getAttribute('id');
-            const name = publisher.getElementsByTagName('Name')[0].textContent;
-            publishers[id] = name;
-        }
-
-        // Parse genres.xml
-        const genresDoc = parser.parseFromString(genresData, "application/xml");
-        const genres = {};
-        const genresList = genresDoc.getElementsByTagName('Genre');
-        for (let i = 0; i < genresList.length; i++) {
-            const genre = genresList[i];
-            const id = genre.getAttribute('id');
-            const name = genre.getElementsByTagName('Name')[0].textContent;
-            genres[id] = name;
-        }
-
-        // Parse books.xml
-        const booksDoc = parser.parseFromString(booksData, "application/xml");
-        const books = booksDoc.getElementsByTagName('Book');
-        const bookTable = document.getElementById('book-table');
-        const borrowBookSelect = document.getElementById('borrowBookId');
-        const returnBookSelect = document.getElementById('returnBookId');
-
-        // Retrieve borrowing data from LocalStorage
-        const borrowingData = JSON.parse(localStorage.getItem('borrowingData')) || {};
-
-        // Clear existing options
-        borrowBookSelect.innerHTML = '<option value="">Select a Book</option>';
-        returnBookSelect.innerHTML = '<option value="">Select a Book</option>';
-
-        for (let i = 0; i < books.length; i++) {
-            const book = books[i];
-            const id = book.getAttribute('id');
-            const title = book.getElementsByTagName('Title')[0].textContent;
-
-            // Fetch Author
-            const authorElement = book.getElementsByTagName('Author')[0];
-            const authorHref = authorElement.getAttribute('xlink:href');
-            const authorId = authorHref.split('#')[1];
-            const authorName = authors[authorId] || 'Unknown';
-
-            // Fetch Publisher
-            const publisherElement = book.getElementsByTagName('Publisher')[0];
-            const publisherHref = publisherElement.getAttribute('xlink:href');
-            const publisherId = publisherHref.split('#')[1];
-            const publisherName = publishers[publisherId] || 'Unknown';
-
-            // Fetch Genre
-            const genreElement = book.getElementsByTagName('Genre')[0];
-            const genreHref = genreElement.getAttribute('xlink:href');
-            const genreId = genreHref.split('#')[1];
-            const genreName = genres[genreId] || 'Unknown';
-
-            // Create table row for each book
-            const row = document.createElement('tr');
-            row.setAttribute('data-id', id);
-
-            // Check if book is borrowed
-            const isBorrowed = borrowingData[id] ? true : false;
-
-            // Populate row with book details, including genre
-            row.innerHTML = `<td>${id}</td>
-                             <td><a href="viewer.html?file=books.xml&id=${id}" target="_blank">${title}</a></td>
-                             <td><a href="viewer.html?file=authors.xml&id=${authorId}" target="_blank">${authorName}</a></td>
-                             <td><a href="viewer.html?file=publishers.xml&id=${publisherId}" target="_blank">${publisherName}</a></td>
-                             <td><a href="viewer.html?file=genres.xml&id=${genreId}" target="_blank">${genreName}</a></td>
-                             <td>${isBorrowed ? borrowingData[id].borrowerName : ''}</td>
-                             <td>${isBorrowed ? borrowingData[id].borrowDate : ''}</td>
-                             <td>${isBorrowed ? borrowingData[id].returnDate : ''}</td>
-                             <td>${isBorrowed ? 'Borrowed' : 'Present'}</td>`;
-            if (isBorrowed) {
-                row.classList.add('borrowed');
-            }
-            bookTable.appendChild(row);
-
-            // Populate the appropriate dropdown
-            if (!isBorrowed) {
-                // Add book to Borrow dropdown
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = `${id} - ${title}`;
-                borrowBookSelect.appendChild(option);
-            } else {
-                // Add book to Return dropdown
-                const returnOption = document.createElement('option');
-                returnOption.value = id;
-                returnOption.textContent = `${id} - ${title}`;
-                returnBookSelect.appendChild(returnOption);
-            }
-        }
-    }).catch(error => {
-        console.error('Error fetching or parsing XML files:', error);
-    }).finally(() => {
-        // Hide loading indicator
-        document.getElementById('loading').style.display = 'none';
-    });
-
     // Initialize the graph network variable
     let network = null;
+
+    /**
+     * Extracts the fragment identifier from a full URI.
+     * @param {string} uri - The full URI (e.g., "http://example.org/library#b2").
+     * @returns {string} The fragment identifier (e.g., "b2").
+     */
+    function getIdFromURI(uri) {
+        const parts = uri.split('#');
+        return parts.length > 1 ? parts[1] : uri;
+    }
+
+    // Function to load table data from the backend
+    function loadTableData() {
+        document.getElementById('loading').style.display = 'flex';
+
+        fetch('/api/books')
+            .then(response => response.json())
+            .then(data => {
+                const books = data.books;
+                const bookTable = document.getElementById('book-table');
+                const borrowBookSelect = document.getElementById('borrowBookId');
+                const returnBookSelect = document.getElementById('returnBookId');
+
+                // Clear existing table and dropdown options
+                bookTable.innerHTML = '';
+                borrowBookSelect.innerHTML = '<option value="">Select a Book</option>';
+                returnBookSelect.innerHTML = '<option value="">Select a Book</option>';
+
+                books.forEach(book => {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-id', book.id);
+
+                    // Create table row with updated viewer links
+                    row.innerHTML = `<td>${book.id}</td>
+                        <td><a href="viewer.html?type=Book&id=${encodeURIComponent(getIdFromURI(book.id))}" target="_blank">${book.title}</a></td>
+                        <td><a href="viewer.html?type=Author&id=${encodeURIComponent(getIdFromURI(book.author.id))}" target="_blank">${book.author.name}</a></td>
+                        <td><a href="viewer.html?type=Publisher&id=${encodeURIComponent(getIdFromURI(book.publisher.id))}" target="_blank">${book.publisher.name}</a></td>
+                        <td><a href="viewer.html?type=Genre&id=${encodeURIComponent(getIdFromURI(book.genre.id))}" target="_blank">${book.genre.name}</a></td>
+                        <td>${book.borrowed ? book.borrower_name : ''}</td>
+                        <td>${book.borrowed ? book.borrower_type : ''}</td>
+                        <td>${book.borrowed ? book.borrow_date : ''}</td>
+                        <td>${book.borrowed ? book.return_date : ''}</td>
+                        <td>${book.state}</td>`;
+
+                    if (book.borrowed) {
+                        row.classList.add('borrowed');
+                        // Add to return dropdown
+                        const returnOption = document.createElement('option');
+                        returnOption.value = book.id;
+                        returnOption.textContent = `${getIdFromURI(book.id)} - ${book.title}`;
+                        returnBookSelect.appendChild(returnOption);
+                    } else {
+                        // Add to borrow dropdown
+                        const borrowOption = document.createElement('option');
+                        borrowOption.value = book.id;
+                        borrowOption.textContent = `${getIdFromURI(book.id)} - ${book.title}`;
+                        borrowBookSelect.appendChild(borrowOption);
+                    }
+
+                    bookTable.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching books:', error);
+            })
+            .finally(() => {
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+
+    // Call loadTableData on page load
+    loadTableData();
 
     // Function to fetch and render graph
     function renderGraph() {
@@ -184,6 +130,9 @@ window.onload = function () {
                         Author: { color: { background: '#33FF57' }, shape: 'ellipse' },
                         Publisher: { color: { background: '#3357FF' }, shape: 'diamond' },
                         Genre: { color: { background: '#F1C40F' }, shape: 'hexagon' },
+                        BorrowingEvent: { color: { background: '#FF6347' }, shape: 'triangle' },
+                        Student: { color: { background: '#8A2BE2' }, shape: 'circle' },
+                        Faculty: { color: { background: '#2E8B57' }, shape: 'circle' },
                         Library: { color: { background: '#9B59B6' }, shape: 'star' },
                         Other: { color: { background: '#7F8C8D' }, shape: 'circle' }
                     }
@@ -197,27 +146,24 @@ window.onload = function () {
                         const nodeId = params.nodes[0];
                         // Determine the type of node to navigate appropriately
                         const nodeGroup = data.nodes.find(node => node.id === nodeId)?.group || 'Other';
-                        let file = '';
+                        let type = '';
                         let id = '';
                         if (nodeGroup === 'Book') {
-                            file = 'books.xml';
-                            id = nodeId.split('#')[1]; // Assuming ID format like http://example.org/library#b1
+                            type = 'Book';
+                            id = getIdFromURI(nodeId);
                         } else if (nodeGroup === 'Author') {
-                            file = 'authors.xml';
-                            id = nodeId.split('#')[1];
+                            type = 'Author';
+                            id = getIdFromURI(nodeId);
                         } else if (nodeGroup === 'Publisher') {
-                            file = 'publishers.xml';
-                            id = nodeId.split('#')[1];
+                            type = 'Publisher';
+                            id = getIdFromURI(nodeId);
                         } else if (nodeGroup === 'Genre') {
-                            file = 'genres.xml';
-                            id = nodeId.split('#')[1];
-                        } else if (nodeGroup === 'Library') {
-                            // Handle library node click if necessary
-                            return;
+                            type = 'Genre';
+                            id = getIdFromURI(nodeId);
                         } else {
                             return;
                         }
-                        window.open(`viewer.html?file=${file}&id=${id}`, '_blank');
+                        window.open(`viewer.html?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`, '_blank');
                     }
                 });
             })
@@ -238,12 +184,8 @@ window.onload = function () {
             // Switch to Graph View
             tableView.style.display = 'none';
             networkView.style.display = 'block';
-            // Render graph if not already rendered
-            if (!network) {
-                renderGraph();
-            } else {
-                network.redraw();
-            }
+            // Render graph
+            renderGraph();
         } else {
             // Switch to Table View
             tableView.style.display = 'table';
@@ -256,71 +198,45 @@ window.onload = function () {
         event.preventDefault();
         const bookId = document.getElementById('borrowBookId').value;
         const borrowerName = document.getElementById('borrowerName').value.trim();
+        const borrowerType = document.getElementById('borrowerType').value;
         const borrowDate = document.getElementById('borrowDate').value;
 
-        if (!bookId || !borrowerName || !borrowDate) {
+        if (!bookId || !borrowerName || !borrowDate || !borrowerType) {
             alert('Please fill in all fields.');
             return;
         }
 
-        // Confirmation Dialog
-        if (!confirm(`Are you sure you want to borrow Book ID ${bookId}?`)) {
+        if (!confirm(`Are you sure you want to borrow Book ID ${getIdFromURI(bookId)}?`)) {
             return;
         }
 
-        const row = document.querySelector(`#book-table tr[data-id="${bookId}"]`);
-        if (row) {
-            const currentState = row.cells[8].textContent;
-            if (currentState === 'Borrowed') {
-                alert('This book is already borrowed.');
-                return;
-            }
-
-            const returnDate = new Date(borrowDate);
-            returnDate.setMonth(returnDate.getMonth() + 3); // Set the return date 3 months later
-
-            // Update the table
-            row.cells[5].textContent = borrowerName;
-            row.cells[6].textContent = borrowDate;
-            row.cells[7].textContent = returnDate.toISOString().split('T')[0]; // Format the date as YYYY-MM-DD
-            row.cells[8].textContent = 'Borrowed';
-            row.classList.add('borrowed');
-
-            // Save borrowing details to LocalStorage
-            const borrowingData = JSON.parse(localStorage.getItem('borrowingData')) || {};
-            borrowingData[bookId] = {
-                borrowerName: borrowerName,
-                borrowDate: borrowDate,
-                returnDate: returnDate.toISOString().split('T')[0]
-            };
-            localStorage.setItem('borrowingData', JSON.stringify(borrowingData));
-
-            // Remove the borrowed book from Borrow Form dropdown
-            const borrowBookSelect = document.getElementById('borrowBookId');
-            const optionToRemove = borrowBookSelect.querySelector(`option[value="${bookId}"]`);
-            if (optionToRemove) {
-                optionToRemove.remove();
-            }
-
-            // Add the borrowed book to Return Form dropdown
-            const returnBookSelect = document.getElementById('returnBookId');
-            const newReturnOption = document.createElement('option');
-            newReturnOption.value = bookId;
-            newReturnOption.textContent = `${bookId} - ${row.cells[1].textContent}`;
-            returnBookSelect.appendChild(newReturnOption);
-
-            // Clear the form
-            document.getElementById('borrowForm').reset();
-
-            alert(`Book ID ${bookId} has been successfully borrowed.`);
-
-            // Optionally, update the graph view if it's active
-            if (document.getElementById('viewToggle').checked && network) {
-                network.redraw();
-            }
-        } else {
-            alert('No book found with that ID.');
-        }
+        fetch('/api/borrow', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                book_id: bookId,
+                borrower_name: borrowerName,
+                borrower_type: borrowerType,
+                borrow_date: borrowDate
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert(data.message || 'Book borrowed successfully!');
+                    // Refresh table and graph
+                    loadTableData();
+                    if (document.getElementById('viewToggle').checked && network) {
+                        renderGraph();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to borrow the book. Please try again.');
+            });
     });
 
     // Handle Return Form Submission
@@ -334,68 +250,57 @@ window.onload = function () {
             return;
         }
 
-        // Confirmation Dialog
-        if (!confirm(`Are you sure you want to return Book ID ${bookId}?`)) {
+        if (!confirm(`Are you sure you want to return Book ID ${getIdFromURI(bookId)}?`)) {
             return;
         }
 
-        const row = document.querySelector(`#book-table tr[data-id="${bookId}"]`);
-        if (row) {
-            const currentState = row.cells[8].textContent;
-            if (currentState !== 'Borrowed') {
-                alert('This book is not currently borrowed.');
-                return;
-            }
-
-            // Update the table to clear borrowing details
-            row.cells[5].textContent = '';
-            row.cells[6].textContent = '';
-            row.cells[7].textContent = '';
-            row.cells[8].textContent = 'Present';
-            row.classList.remove('borrowed');
-
-            // Update LocalStorage
-            const borrowingData = JSON.parse(localStorage.getItem('borrowingData')) || {};
-            if (borrowingData[bookId]) {
-                borrowingData[bookId].returnDate = returnDateInput; // Optionally update the return date
-                // Remove the entry to indicate the book is returned
-                delete borrowingData[bookId];
-                localStorage.setItem('borrowingData', JSON.stringify(borrowingData));
-            }
-
-            // Remove the returned book from Return Form dropdown
-            const returnBookSelect = document.getElementById('returnBookId');
-            const optionToRemove = returnBookSelect.querySelector(`option[value="${bookId}"]`);
-            if (optionToRemove) {
-                optionToRemove.remove();
-            }
-
-            // Add the returned book back to Borrow Form dropdown
-            const borrowBookSelect = document.getElementById('borrowBookId');
-            const newBorrowOption = document.createElement('option');
-            newBorrowOption.value = bookId;
-            newBorrowOption.textContent = `${bookId} - ${row.cells[1].textContent}`;
-            borrowBookSelect.appendChild(newBorrowOption);
-
-            // Clear the form
-            document.getElementById('returnForm').reset();
-
-            alert(`Book ID ${bookId} has been successfully returned.`);
-
-            // Optionally, update the graph view if it's active
-            if (document.getElementById('viewToggle').checked && network) {
-                network.redraw();
-            }
-        } else {
-            alert('No book found with that ID.');
-        }
+        fetch('/api/return', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ book_id: bookId }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert(data.message || 'Book returned successfully!');
+                    // Refresh table and graph
+                    loadTableData();
+                    if (document.getElementById('viewToggle').checked && network) {
+                        renderGraph();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to return the book. Please try again.');
+            });
     });
 
-    // Clear borrowing data from localStorage
+    // Clear borrowing data
     document.getElementById('clearDataBtn').addEventListener('click', function () {
         if (confirm('Are you sure you want to clear all borrowing data? This action cannot be undone.')) {
-            localStorage.removeItem('borrowingData'); // Only remove borrowing data
-            location.reload(); // Reload the page after clearing the data
+            fetch('/api/clear_borrowing_data', {
+                method: 'POST',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(`Error: ${data.error}`);
+                    } else {
+                        alert(data.message || 'All borrowing data cleared successfully!');
+                        // Refresh table and graph
+                        loadTableData();
+                        if (document.getElementById('viewToggle').checked && network) {
+                            renderGraph();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to clear borrowing data. Please try again.');
+                });
         }
     });
 };

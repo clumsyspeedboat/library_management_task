@@ -45,6 +45,7 @@
                     <th>Publisher</th>
                     <th>Genre</th>
                     <th>Borrower</th>
+                    <th>Borrower Type</th>
                     <th>Borrow Date</th>
                     <th>Return Date</th>
                     <th>State</th>
@@ -56,7 +57,7 @@
         </table>
 
         <!-- Graph View -->
-        <div id="network"></div>
+        <div id="network" style="height: 600px; display: none;"></div>
 
         <!-- Forms Container -->
         <div class="forms-container">
@@ -72,6 +73,13 @@
 
                     <label for="borrowerName">Borrower's Name:</label>
                     <input type="text" id="borrowerName" required>
+
+                    <label for="borrowerType">Borrower Type:</label>
+                    <select id="borrowerType" required>
+                        <option value="">Select Type</option>
+                        <option value="Student">Student</option>
+                        <option value="Faculty">Faculty</option>
+                    </select>
 
                     <label for="borrowDate">Borrow Date:</label>
                     <input type="date" id="borrowDate" required>
@@ -104,10 +112,10 @@
         </div>
     </div>
 
-    <!-- Link to External JS -->
-    <script src="/static/js/index.js"></script>
     <!-- Include Vis.js Library -->
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Link to External JS -->
+    <script src="/static/js/index.js"></script>
 </body>
 
 </html>
