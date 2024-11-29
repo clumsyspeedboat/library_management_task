@@ -5,6 +5,8 @@ import logging
 from flask_cors import CORS
 from SPARQLWrapper import SPARQLWrapper, JSON
 from datetime import datetime
+from rdflib import Graph
+from rdflib.plugins.sparql.parser import parseUpdate
 
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 CORS(app)
@@ -132,46 +134,96 @@ def get_description():
 # API route to handle SPARQL queries
 @app.route('/api/sparql', methods=['POST'])
 def execute_sparql():
-    data = request.get_json()
-    logging.debug(f"Received SPARQL request data: {data}")
+    data_source = request.form.get('dataSource')
 
-    if not data:
-        logging.warning("No data received in SPARQL request.")
-        return jsonify({'error': 'No data provided'}), 400
+    query = request.form.get('query')
+    if not query:
+        return jsonify({'error': 'SPARQL query is required'}), 400
 
-    endpoint = data.get('endpoint')
-    query = data.get('query')
+    if data_source == 'turtleFile':
+        # Use internal Turtle file at 'docker/import/ontology.ttl'
+        g = Graph()
+        try:
+            g.parse('docker/import/ontology.ttl', format='turtle')
+        except Exception as e:
+            logging.exception(f"Error parsing Turtle file: {e}")
+            return jsonify({'error': 'Failed to parse Turtle file', 'message': str(e)}), 400
 
-    if not endpoint or not query:
-        logging.warning("Missing endpoint or query in SPARQL request.")
-        return jsonify({'error': 'Both endpoint and query are required'}), 400
+        try:
+            # Determine if it's a SPARQL Update operation
+            def is_update_query(query):
+                try:
+                    parseUpdate(query)
+                    return True
+                except Exception:
+                    return False
 
-    # Initialize SPARQLWrapper
-    sparql = SPARQLWrapper(endpoint)
-    sparql.setQuery(query)
-    sparql.setReturnFormat(JSON)
+            if is_update_query(query):
+                # Perform SPARQL Update
+                g.update(query)
+                # Save the graph back to the Turtle file
+                g.serialize(destination='docker/import/ontology.ttl', format='turtle')
+                return jsonify({'message': 'SPARQL update executed successfully'})
+            else:
+                # Perform SPARQL Query
+                results = g.query(query)
+                # Process results
+                if results.type == 'ASK':
+                    boolean_result = bool(results)
+                    return jsonify({'boolean': boolean_result})
+                else:
+                    vars = results.vars
+                    data_table = []
+                    for row in results:
+                        row_dict = {}
+                        for idx, var in enumerate(vars):
+                            row_dict[str(var)] = str(row[idx]) if row[idx] is not None else ''
+                        data_table.append(row_dict)
+                    return jsonify({'variables': [str(var) for var in vars], 'results': data_table})
+        except Exception as e:
+            logging.exception(f"Error executing SPARQL query: {e}")
+            return jsonify({'error': 'Failed to execute SPARQL query', 'message': str(e)}), 500
+    elif data_source == 'endpoint':
+        endpoint = request.form.get('endpoint')
+        if not endpoint:
+            return jsonify({'error': 'SPARQL endpoint is required'}), 400
 
-    try:
-        results = sparql.query().convert()
-        logging.debug(f"SPARQL query results: {results}")
+        # Initialize SPARQLWrapper
+        sparql = SPARQLWrapper(endpoint)
+        sparql.setQuery(query)
+        sparql.setReturnFormat(JSON)
 
-        # Extract variables and bindings
-        vars = results['head']['vars']
-        bindings = results['results']['bindings']
+        try:
+            results = sparql.query().convert()
+            logging.debug(f"SPARQL query results: {results}")
 
-        # Prepare data for frontend
-        data_table = []
-        for binding in bindings:
-            row = {}
-            for var in vars:
-                row[var] = binding.get(var, {}).get('value', '')
-            data_table.append(row)  # Corrected from push to append
+            if 'boolean' in results:
+                # This is an ASK query
+                boolean_result = results['boolean']
+                return jsonify({'boolean': boolean_result})
+            elif 'head' in results and 'vars' in results['head'] and 'results' in results and 'bindings' in results['results']:
+                # This is a SELECT query
+                vars = results['head']['vars']
+                bindings = results['results']['bindings']
 
-        return jsonify({'variables': vars, 'results': data_table})
+                # Prepare data for frontend
+                data_table = []
+                for binding in bindings:
+                    row = {}
+                    for var in vars:
+                        row[var] = binding.get(var, {}).get('value', '')
+                    data_table.append(row)
 
-    except Exception as e:
-        logging.exception(f"Error executing SPARQL query: {e}")
-        return jsonify({'error': 'Failed to execute SPARQL query', 'message': str(e)}), 500
+                return jsonify({'variables': vars, 'results': data_table})
+            else:
+                logging.error("Unsupported SPARQL query type or unexpected response structure.")
+                return jsonify({'error': 'Unsupported SPARQL query type or unexpected response structure.'}), 400
 
+        except Exception as e:
+            logging.exception(f"Error executing SPARQL query: {e}")
+            return jsonify({'error': 'Failed to execute SPARQL query', 'message': str(e)}), 500
+    else:
+        return jsonify({'error': 'Invalid data source selected'}), 400
+    
 if __name__ == '__main__':
     app.run(debug=True)

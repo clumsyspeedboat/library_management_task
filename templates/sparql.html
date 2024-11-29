@@ -8,11 +8,22 @@
     <!-- SPARQL Form -->
     <div class="form-container">
         <form id="sparqlForm">
-            <label for="sparqlEndpoint">SPARQL Endpoint:</label>
-            <input type="text" id="sparqlEndpoint" placeholder="Enter SPARQL endpoint URL" required>
+            <!-- Option to choose between endpoint or internal Turtle file -->
+            <label>Select Data Source:</label><br>
+            <input type="radio" id="useEndpoint" name="dataSource" value="endpoint" checked>
+            <label for="useEndpoint">SPARQL Endpoint</label><br>
+            <input type="radio" id="useTurtleFile" name="dataSource" value="turtleFile">
+            <label for="useTurtleFile">Internal Turtle File</label><br><br>
 
-            <label for="sparqlQuery">SPARQL Query:</label>
-            <textarea id="sparqlQuery" rows="10" placeholder="Enter your SPARQL query here..." required></textarea>
+            <!-- SPARQL Endpoint Input -->
+            <div id="endpointInput">
+                <label for="sparqlEndpoint">SPARQL Endpoint:</label>
+                <input type="text" id="sparqlEndpoint" placeholder="Enter SPARQL endpoint URL">
+            </div>
+
+            <!-- SPARQL Query Textarea -->
+            <label for="sparqlQuery">SPARQL Query or Update:</label>
+            <textarea id="sparqlQuery" rows="10" placeholder="Enter your SPARQL query or update here..." required></textarea>
 
             <button type="submit">Execute Query</button>
         </form>
